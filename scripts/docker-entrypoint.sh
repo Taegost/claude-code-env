@@ -23,19 +23,6 @@ adduser -D -u "$USER_ID" -G claude -s /bin/bash claude 2>/dev/null || true
 mkdir -p /home/claude/.claude /home/claude/.config/codeburn
 chown -R "$USER_ID:$GROUP_ID" /home/claude
 
-if [ -z "$WORKSPACE_PATH" ]; then
-    echo "ERROR: WORKSPACE_PATH is not set. Add it to .env and restart." >&2
-    exit 1
-fi
-
-# Reject obviously dangerous workspace paths.
-case "$WORKSPACE_PATH" in
-    /|/etc*|/proc*|/sys*|/var/run*|/dev*)
-        echo "ERROR: WORKSPACE_PATH '$WORKSPACE_PATH' points to a sensitive system path." >&2
-        exit 1
-        ;;
-esac
-
 # Seed ~/.claude from image defaults on fresh volumes.
 # settings.json presence means the volume was previously initialized — skip.
 # cp -rn (no-clobber) never overwrites existing user data.
