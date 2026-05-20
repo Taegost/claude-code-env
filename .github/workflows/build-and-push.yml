@@ -4,7 +4,6 @@
 # Builds the Docker image and pushes it to Docker Hub.
 #
 # TRIGGERS:
-#   - Push to main         → builds and pushes with 'latest' tag
 #   - Version tag (v*.*.*)  → builds and pushes with full semver tags
 #   - Pull request to main  → builds only (no push) to validate Dockerfile
 #   - Weekly schedule       → rebuilds to pick up base image security patches
@@ -14,7 +13,7 @@
 #   DOCKERHUB_USERNAME   — your Docker Hub username (org-level secret)
 #   DOCKERHUB_TOKEN      — Docker Hub access token, NOT your password (org-level secret)
 #                          Generate at: hub.docker.com → Account Settings → Security
-#   DOCKERHUB_IMAGENAME  — full image path, e.g. yourusername/devops-toolbox (repo-level secret)
+#   DOCKERHUB_IMAGENAME  — image name, ex devops-toolbox (repo-level secret)
 #
 # TAGGING STRATEGY:
 #   Push to main:    latest, sha-<short-commit>

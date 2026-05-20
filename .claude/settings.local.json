@@ -5,8 +5,7 @@
       "Bash(gh api *)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:api.github.com)",
-      "Bash(git add *)",
-      "Bash(docker exec *)"
+      "Bash(git add *)"
     ]
   }
 }

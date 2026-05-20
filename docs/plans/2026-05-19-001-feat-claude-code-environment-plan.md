@@ -20,7 +20,7 @@ Mike accesses Claude Code across multiple devices (desktop, laptop, phone) but c
 
 ## Output Structure
 
-```
+```text
 claude-code-env/
 ├── .env.example                   (new)
 ├── .gitignore                     (update existing empty file)
@@ -44,7 +44,7 @@ claude-code-env/
 
 *This illustrates the intended approach and is directional guidance for review, not implementation specification. The implementing agent should treat it as context, not code to reproduce.*
 
-```
+```text
 Any LAN Device
       │
       │  SSH (host-managed, out of scope)
@@ -260,12 +260,12 @@ All success criteria preserved: ≤7 setup steps, <10 min migration, LAN accessi
   - Steps 6 and 7 are reserved for authentication or marketplace setup if required. If both are needed the step count hits exactly 7 — document them conditionally (only shown if the user needs them) so the README doesn't over-count for users who skip them.
 - **Daily usage:** run `./scripts/attach.sh` from the host; detach with `Ctrl-b d`
 - **Volume backup:** document the exact one-liner for each named volume, e.g.:
-  ```
+  ```bash
   docker run --rm -v claude_data:/data -v $(pwd):/backup alpine tar czf /backup/claude_data.tar.gz -C /data .
   docker run --rm -v codeburn_config:/data -v $(pwd):/backup alpine tar czf /backup/codeburn_config.tar.gz -C /data .
   ```
 - **Volume restore:** inverse — extract archive into a fresh named volume:
-  ```
+  ```bash
   docker run --rm -v claude_data:/data -v $(pwd):/backup alpine tar xzf /backup/claude_data.tar.gz -C /data
   ```
 - **Host migration:**

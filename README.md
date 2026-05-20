@@ -72,6 +72,10 @@ If the session exited (e.g. after a Claude Code crash), it is automatically recr
 ---
 
 ## Backup
+`~/.claude` may contain sensitive auth/session data. Treat backups as secrets:
+- store archives in restricted locations
+- encrypt before transfer/storage (for example with age, gpg, or encrypted volumes)
+- and avoid committing or sharing them in plain form
 
 All persistent state lives in `~/.claude/` on the host (bind-mounted into the container). Back it up with any standard method:
 

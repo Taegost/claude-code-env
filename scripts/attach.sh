@@ -1,5 +1,10 @@
 #!/bin/bash
-set -e
+set -euo pipefail
+
+if ! docker info >/dev/null 2>&1; then
+    echo "Error: Docker is not available (daemon down or permission denied)." >&2
+    exit 1
+fi
 
 if ! docker ps --filter "name=^claude-code$" --filter "status=running" --format "{{.Names}}" | grep -q "^claude-code$"; then
     echo "Error: container 'claude-code' is not running." >&2

@@ -140,6 +140,4 @@ _(none)_
 
 ### Deferred to Planning
 
-- [Affects R5][Needs research] What is Codeburn's exact SQLite data directory path?
-- [Affects R4, R5][Needs research] Does Caveman write any state outside `~/.claude`? If so, what path?
-- [Affects R1][Needs research] What is the correct Claude Code installation method for the chosen base image (npm global, official installer script, etc.)?
+_(none)_
