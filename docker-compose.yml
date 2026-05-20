@@ -1,0 +1,14 @@
+services:
+  claude-code:
+    build: .
+    container_name: claude-code
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - claude_data:/home/claude/.claude
+      - codeburn_config:/home/claude/.config/codeburn
+      - ${WORKSPACE_PATH}:/workspace
+
+volumes:
+  claude_data:
+  codeburn_config:
