@@ -1,13 +1,14 @@
 FROM node:24-alpine
 
 RUN apk add --no-cache \
-        tmux \
-        git \
-        curl \
-        ca-certificates \
-        su-exec \
         bash \
-        shadow
+        ca-certificates \
+        curl \
+        git \
+        openssh-client \
+        shadow \
+        su-exec \
+        tmux
 
 # Install Claude Code globally (accessible to all users)
 RUN npm install -g @anthropic-ai/claude-code
