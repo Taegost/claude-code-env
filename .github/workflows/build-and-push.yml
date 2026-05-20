@@ -1,7 +1,7 @@
 # =============================================================================
-# DevOps Toolbox — Build and Publish Pipeline
+# Build and Publish Pipeline
 # =============================================================================
-# Builds the DevOps Toolbox image and pushes it to Docker Hub.
+# Builds the Docker image and pushes it to Docker Hub.
 #
 # TRIGGERS:
 #   - Push to main         → builds and pushes with 'latest' tag

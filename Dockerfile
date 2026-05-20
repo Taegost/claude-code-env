@@ -1,15 +1,16 @@
-FROM node:20-slim
+FROM node:24-alpine
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apk add --no-cache \
         tmux \
         git \
         curl \
         ca-certificates \
-        gosu \
-    && rm -rf /var/lib/apt/lists/*
+        su-exec \
+        bash \
+        shadow
 
-# Install Claude Code and Codeburn globally (accessible to all users)
-RUN npm install -g @anthropic-ai/claude-code codeburn
+# Install Claude Code globally (accessible to all users)
+RUN npm install -g @anthropic-ai/claude-code
 
 # Install Caveman pinned to 2026-05-17 release.
 # Claude Code binary is on PATH at this point, so Caveman detects and installs
@@ -22,11 +23,16 @@ RUN curl -fsSL -o /tmp/caveman-install.sh \
     && rm /tmp/caveman-install.sh
 
 # Seed defaults before runtime volume mounts can override /root/.claude.
-# Marker file: /root/.claude/.caveman-active
+# Seeding is skipped at runtime when settings.json already exists in the volume.
 RUN mkdir -p /opt/claude-defaults \
     && cp -r /root/.claude/. /opt/claude-defaults/ \
     && chown -R root:root /opt/claude-defaults \
     && chmod -R u+rX,go-rwx /opt/claude-defaults
+
+# Create a default claude user/group (UID/GID 1000).
+# The entrypoint remaps to the host-supplied USER_ID/GROUP_ID at runtime.
+RUN groupmod -n claude node \
+    && usermod -l claude -d /home/claude -m -s /bin/bash node
 
 COPY scripts/docker-entrypoint.sh /scripts/docker-entrypoint.sh
 RUN chmod +x /scripts/docker-entrypoint.sh

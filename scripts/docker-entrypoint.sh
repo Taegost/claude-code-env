@@ -16,12 +16,12 @@ fi
 
 # Create group and user with the requested UID/GID.
 # groupadd/useradd may fail if the ID already exists — that is fine.
-groupadd -g "$GROUP_ID" claude 2>/dev/null || true
-useradd -m -u "$USER_ID" -g "$GROUP_ID" -s /bin/bash claude 2>/dev/null || true
+addgroup -g "$GROUP_ID" claude 2>/dev/null || true
+adduser -D -u "$USER_ID" -G claude -s /bin/bash claude 2>/dev/null || true
 
 # Ensure home dirs are owned by claude before any volume seeding.
 mkdir -p /home/claude/.claude /home/claude/.config/codeburn
-chown -R claude:claude /home/claude
+chown -R "$USER_ID:$GROUP_ID" /home/claude
 
 if [ -z "$WORKSPACE_PATH" ]; then
     echo "ERROR: WORKSPACE_PATH is not set. Add it to .env and restart." >&2
@@ -37,25 +37,27 @@ case "$WORKSPACE_PATH" in
 esac
 
 # Seed ~/.claude from image defaults on fresh volumes.
-# Marker file .caveman-active confirms Caveman hook files are present.
+# settings.json presence means the volume was previously initialized — skip.
 # cp -rn (no-clobber) never overwrites existing user data.
-if [ ! -f /home/claude/.claude/.caveman-active ]; then
+if [ ! -f /home/claude/.claude/settings.json ]; then
     cp -rn /opt/claude-defaults/. /home/claude/.claude/
-    chown -R claude:claude /home/claude/.claude
+    chown -R "$USER_ID:$GROUP_ID" /home/claude/.claude
 fi
 
 # Drop to the claude user for all remaining work.
 # The supervision loop and keepalive process both run as claude.
-exec gosu claude bash -c '
+# su-exec doesn't update HOME; set it explicitly so Claude Code resolves ~/.claude correctly.
+export HOME=/home/claude USER=claude LOGNAME=claude
+exec su-exec claude bash -c '
     if ! tmux has-session -t claude 2>/dev/null; then
-        tmux new-session -d -s claude -c /workspace
+        tmux new-session -d -s claude -c /workspace claude
     fi
 
     (
         while true; do
             sleep 30
             if ! tmux has-session -t claude 2>/dev/null; then
-                tmux new-session -d -s claude -c /workspace
+                tmux new-session -d -s claude -c /workspace claude
             fi
         done
     ) &

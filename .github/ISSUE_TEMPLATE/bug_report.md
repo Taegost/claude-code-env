@@ -10,7 +10,7 @@ assignees: ''
 A clear description of what went wrong.
 
 **Container version / image tag**
-e.g. `taegost/devops-toolbox:latest` or `taegost/devops-toolbox:sha-abc1234`
+e.g. `taegost/claude-code-env:latest` or `taegost/claude-code-env:sha-abc1234`
 
 **DevContainer settings** *(do NOT include actual credentials or zone IDs)*
 

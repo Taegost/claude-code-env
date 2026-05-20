@@ -2,7 +2,7 @@
 
 A self-hosted Docker Compose environment for Claude Code. Runs on a home-lab VM and stays accessible from any LAN device via a single-command tmux attach — no third-party session management required.
 
-Pre-installed: Claude Code, [Caveman](https://github.com/juliusbrussee/caveman), [Codeburn](https://github.com/getagentseal/codeburn).
+Pre-installed: Claude Code, [Caveman](https://github.com/juliusbrussee/caveman).
 
 ---
 
@@ -10,7 +10,7 @@ Pre-installed: Claude Code, [Caveman](https://github.com/juliusbrussee/caveman),
 
 - Docker Engine + Docker Compose v2 on the host VM
 - SSH access to the host VM pre-configured
-- A valid [Anthropic API key](https://console.anthropic.com)
+- A [claude.ai](https://claude.ai) account (for interactive login) **or** an [Anthropic API key](https://console.anthropic.com)
 
 ---
 
@@ -25,7 +25,7 @@ Pre-installed: Claude Code, [Caveman](https://github.com/juliusbrussee/caveman),
 2. Copy the example env file, fill in your values, and lock down permissions:
    ```sh
    cp .env.example .env
-   # Edit .env: set ANTHROPIC_API_KEY, WORKSPACE_PATH, and optionally USER_ID/GROUP_ID
+   # Edit .env: set WORKSPACE_PATH, and optionally ANTHROPIC_API_KEY and USER_ID/GROUP_ID
    # Run `id -u` and `id -g` on the host to find your UID/GID (default: 1000/1000)
    chmod 600 .env
    ```
@@ -35,7 +35,7 @@ Pre-installed: Claude Code, [Caveman](https://github.com/juliusbrussee/caveman),
    chmod +x scripts/attach.sh
    ```
 
-4. Build and start the container:
+4. Start the container (pulls the image automatically on first run):
    ```sh
    docker compose up -d
    ```
@@ -49,11 +49,11 @@ Pre-installed: Claude Code, [Caveman](https://github.com/juliusbrussee/caveman),
 
 6. *(First time only)* Inside the container, authenticate Claude Code:
    ```sh
-   claude
+   /login
    ```
-   Follow the prompts to complete API key setup.
+   Follow the prompts to complete authentication via claude.ai OAuth, or set `ANTHROPIC_API_KEY` in `.env` to skip interactive login.
 
-7. *(Optional)* Install additional Claude Code plugins or skills from inside the session. They persist in the `~/.claude` volume across restarts.
+7. *(Optional)* Install additional Claude Code plugins or skills from inside the session. They persist in the `~/.claude` bind mount across restarts.
 
 ---
 
@@ -71,34 +71,18 @@ If the session exited (e.g. after a Claude Code crash), it is automatically recr
 
 ---
 
-## Volume Backup
+## Backup
 
-Named volumes `claude_data` and `codeburn_config` hold all persistent state. Back them up with:
+All persistent state lives in `~/.claude/` on the host (bind-mounted into the container). Back it up with any standard method:
 
 ```sh
-docker run --rm \
-  -v claude_data:/data \
-  -v "$(pwd)":/backup \
-  alpine tar czf /backup/claude_data.tar.gz -C /data .
-
-docker run --rm \
-  -v codeburn_config:/data \
-  -v "$(pwd)":/backup \
-  alpine tar czf /backup/codeburn_config.tar.gz -C /data .
+tar czf claude-backup-$(date +%Y%m%d).tar.gz -C ~ .claude
 ```
 
-## Volume Restore
+## Restore
 
 ```sh
-docker run --rm \
-  -v claude_data:/data \
-  -v "$(pwd)":/backup \
-  alpine tar xzf /backup/claude_data.tar.gz -C /data
-
-docker run --rm \
-  -v codeburn_config:/data \
-  -v "$(pwd)":/backup \
-  alpine tar xzf /backup/codeburn_config.tar.gz -C /data
+tar xzf claude-backup-<date>.tar.gz -C ~
 ```
 
 ---
@@ -107,9 +91,12 @@ docker run --rm \
 
 To move the environment to a new VM:
 
-1. On the old host — back up both volumes (see above).
-2. Copy the `.env` file to the new host (keep it secure; it contains your API key).
-3. On the new host — clone the repo, restore both volume archives (see above).
+1. On the old host — back up `~/.claude/` (see above).
+2. Copy the backup archive and your `.env` file to the new host (keep `.env` secure; it may contain your API key).
+3. On the new host — clone the repo and restore the backup:
+   ```sh
+   tar xzf claude-backup-<date>.tar.gz -C ~
+   ```
 4. Start the container:
    ```sh
    docker compose up -d
@@ -119,7 +106,7 @@ To move the environment to a new VM:
    ./scripts/attach.sh
    ```
 
-All Claude Code settings, memory, Caveman configuration, and Codeburn data are restored. No manual reconfiguration needed.
+All Claude Code settings, memory, and Caveman configuration are restored. No manual reconfiguration needed.
 
 ---
 
@@ -127,7 +114,7 @@ All Claude Code settings, memory, Caveman configuration, and Codeburn data are r
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `ANTHROPIC_API_KEY` | Yes | — | Anthropic API key for Claude Code |
+| `ANTHROPIC_API_KEY` | No | — | Anthropic API key. Optional if you use interactive `/login` inside the container |
 | `WORKSPACE_PATH` | Yes | — | Absolute host path mounted as `/workspace` inside the container |
 | `USER_ID` | No | `1000` | UID for the container user. Match your host UID (`id -u`) for correct file ownership on the workspace mount |
 | `GROUP_ID` | No | `1000` | GID for the container user. Match your host GID (`id -g`) |
@@ -137,6 +124,6 @@ All Claude Code settings, memory, Caveman configuration, and Codeburn data are r
 ## Notes
 
 - The container runs as a non-root user (`claude`) with the UID/GID you specify. Workspace files must be owned by that UID for write access inside the container.
-- Caveman hook files are seeded from image defaults on fresh volumes and never overwrite existing user data.
-- The `~/.cache/codeburn/` pricing cache is intentionally not persisted — it has a 24-hour TTL and rebuilds automatically.
+- `~/.claude/` is seeded from image defaults on first start (no `settings.json` present) and never overwrites existing user data.
 - Docker group membership on the host grants implicit root-equivalent access to the host filesystem. Restrict it to trusted users.
+- **Settings parity limitation**: `~/.claude/settings.json` is shared between the host and container. If your host settings contain host-specific paths (hook commands, status line scripts), those paths will not resolve inside the container. The container and host cannot share identical `settings.json` without path conflicts.

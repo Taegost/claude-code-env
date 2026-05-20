@@ -1,14 +1,9 @@
 services:
   claude-code:
-    build: .
+    image: taegost/claude-code-env:latest
     container_name: claude-code
     restart: unless-stopped
     env_file: .env
     volumes:
-      - claude_data:/home/claude/.claude
-      - codeburn_config:/home/claude/.config/codeburn
+      - ~/.claude:/home/claude/.claude
       - ${WORKSPACE_PATH}:/workspace
-
-volumes:
-  claude_data:
-  codeburn_config:
